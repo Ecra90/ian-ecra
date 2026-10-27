@@ -5,7 +5,7 @@ import "./App.css";
 import AdminDashboard from "./AdminDashboard";
 import EcraGame from "./EcraGame";
 
-const API = "http://localhost:5000/api";
+const API = "http://ian-ecra.vercel.app/api";
 
 function App() {
   const [showMessage, setShowMessage] = useState(false);

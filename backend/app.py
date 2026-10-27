@@ -181,6 +181,7 @@ def get_responses():
 if __name__ == "__main__":
     initialize_database()
     print(f"Database: {DATABASE}")
-    print("Starting Flask API on http://127.0.0.1:5000")
+    print("Starting Flask API on http://ian-ecra.vercel.app"
+    "")
 
     app.run(host="127.0.0.1", port=5000, debug=False)
