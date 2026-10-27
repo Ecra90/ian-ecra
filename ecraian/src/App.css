@@ -1,0 +1,280 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #fff1f5;
+  color: #35232b;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+h1 {
+  font-size: 42px;
+  color: #c74770;
+}
+
+p {
+  font-size: 18px;
+}
+
+button {
+  background: #c74770;
+  color: white;
+  border: none;
+  padding: 14px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background: #a83259;
+}
+
+.container {
+  width: min(90%, 650px);
+  padding: 40px 25px;
+  text-align: center;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 35px rgba(199, 71, 112, 0.15);
+}
+
+.message {
+  margin-top: 25px;
+  padding: 20px;
+  background: #fff1f5;
+  border-radius: 14px;
+  animation: appear 0.4s ease;
+}
+
+.message h2 {
+  color: #c74770;
+}
+
+.message p {
+  line-height: 1.7;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.confession {
+  margin-top: 25px;
+  padding: 25px 20px;
+  background: #fff1f5;
+  border-radius: 14px;
+  animation: appear 0.5s ease;
+}
+
+.confession h2 {
+  color: #c74770;
+}
+
+.confession p {
+  line-height: 1.7;
+}
+
+.confession h3 {
+  margin-top: 25px;
+}
+
+.choices {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.response {
+  margin-top: 25px;
+  padding: 15px;
+  background: white;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+body {
+  background: linear-gradient(135deg, #fff1f5, #ffd6e4, #ffe9f0);
+  background-attachment: fixed;
+}
+
+.container {
+  position: relative;
+  overflow: hidden;
+  width: min(92%, 680px);
+  padding: 45px 28px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(199, 71, 112, 0.15);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(130, 40, 75, 0.15);
+}
+
+.container > h1,
+.container > p,
+.container > button,
+.message,
+.confession {
+  position: relative;
+  z-index: 1;
+}
+
+h1 {
+  font-size: clamp(30px, 6vw, 46px);
+  color: #c74770;
+}
+
+button {
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+.hearts {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hearts span {
+  position: absolute;
+  bottom: -50px;
+  font-size: 24px;
+  opacity: 0;
+  animation: floatHeart 7s linear infinite;
+}
+
+@keyframes floatHeart {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 0.55;
+  }
+
+  85% {
+    opacity: 0.45;
+  }
+
+  100% {
+    transform: translateY(-750px) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 32px 18px;
+  }
+
+  .choices {
+    flex-direction: column;
+  }
+
+  .choices button {
+    width: 100%;
+  }
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error {
+  color: #b42318;
+  font-weight: bold;
+}
+
+.admin-page {
+  min-height: 100vh;
+  width: 100%;
+  padding: 30px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #fff1f5, #ffd6e4);
+}
+
+.admin-card {
+  width: min(100%, 600px);
+  margin: 35px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 15px 45px rgba(130, 40, 75, 0.12);
+}
+
+.admin-card h1 {
+  font-size: 30px;
+}
+
+.admin-card label {
+  display: block;
+  margin-top: 16px;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.admin-card input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e4bdcb;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.admin-card button {
+  margin-top: 12px;
+}
+
+.response-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 25px;
+}
+
+.response-item {
+  padding: 18px;
+  border-radius: 12px;
+  background: #fff1f5;
+  overflow-wrap: anywhere;
+}
+
+.response-item h3 {
+  color: #c74770;
+}
+
+.response-item small {
+  color: #6c5860;
+}
+
+.admin-card .error {
+  color: #b42318;
+}
