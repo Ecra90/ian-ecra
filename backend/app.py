@@ -1,5 +1,4 @@
 
-
 import os
 import sqlite3
 import hmac
@@ -12,18 +11,14 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
-# Configuration
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
-
 if not app.secret_key:
-    raise RuntimeError(
-        "FLASK_SECRET_KEY is missing. Set it before starting Flask."
-    )
+    raise RuntimeError("FLASK_SECRET_KEY is missing.")
 
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=False,  # Local development only
+    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_SECURE=True,
 )
 
 CORS(
@@ -31,6 +26,7 @@ CORS(
     resources={
         r"/api/*": {
             "origins": [
+                "https://ian-ecra.vercel.app",
                 "http://localhost:3001",
                 "http://127.0.0.1:3001",
                 "http://localhost:5173",
@@ -41,6 +37,8 @@ CORS(
     supports_credentials=True,
 )
 
+# SQLite is suitable for local development only.
+# Use a persistent hosted database for production.
 DATABASE = Path(__file__).resolve().with_name("responses.db")
 
 
@@ -60,6 +58,10 @@ def initialize_database():
                 created_at TEXT NOT NULL
             )
         """)
+
+
+# Ensure the table exists when the Flask module is loaded.
+initialize_database()
 
 
 def admin_required(function):
@@ -108,7 +110,6 @@ def login():
 
     session.clear()
     session["admin_logged_in"] = True
-
     return jsonify({"message": "Login successful."})
 
 
@@ -133,7 +134,6 @@ def save_response():
         return jsonify({"error": "A JSON object is required."}), 400
 
     answer = data.get("answer")
-
     if answer not in ("yes", "maybe"):
         return jsonify({
             "error": "Answer must be 'yes' or 'maybe'."
@@ -179,9 +179,6 @@ def get_responses():
 
 
 if __name__ == "__main__":
-    initialize_database()
-    print(f"Database: {DATABASE}")
-    print("Starting Flask API on http://ian-ecra.vercel.app"
-    "")
-
     app.run(host="127.0.0.1", port=5000, debug=False)
+
+
