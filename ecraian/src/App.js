@@ -1,11 +1,16 @@
 
 
+
 import { useState } from "react";
 import "./App.css";
 import AdminDashboard from "./AdminDashboard";
 import EcraGame from "./EcraGame";
 
-const API = "http://ian-ecra.vercel.app/api";
+// Set REACT_APP_API_URL in .env if Flask is deployed separately.
+// Otherwise, this defaults to the same domain as the frontend.
+const API = (
+  process.env.REACT_APP_API_URL || "/api"
+).replace(/\/+$/, "");
 
 function App() {
   const [showMessage, setShowMessage] = useState(false);
@@ -31,16 +36,19 @@ function App() {
         body: JSON.stringify({ answer }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.error || "Could not save your answer.");
+        throw new Error(
+          data.error || `Could not save your answer (HTTP ${response.status}).`
+        );
       }
 
       setSubmitted(true);
     } catch (err) {
       setError(
-        err.message || "Unable to connect to the server. Please try again."
+        err.message ||
+          "Unable to connect to the server. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -214,6 +222,7 @@ function App() {
                   setAnswer("yes");
                   setError("");
                 }}
+                disabled={isSubmitting}
               >
                 Let's get to know each other 😊
               </button>
@@ -225,6 +234,7 @@ function App() {
                   setAnswer("maybe");
                   setError("");
                 }}
+                disabled={isSubmitting}
               >
                 Let me think about it 😅
               </button>
@@ -233,7 +243,7 @@ function App() {
                 type="button"
                 className="submit-button"
                 onClick={submitAnswer}
-                disabled={!answer || isSubmitting}
+                disabled={!answer || isSubmitting || submitted}
               >
                 {isSubmitting ? "Sending..." : "Send my answer ❤️"}
               </button>
@@ -254,9 +264,14 @@ function App() {
               </p>
             )}
 
-            {error && <p className="error" role="alert">{error}</p>}
+            {error && (
+              <p className="error" role="alert">
+                {error}
+              </p>
+            )}
           </section>
         )}
+
         {!showGame ? (
           <div className="game-invitation">
             <h3>Think you can handle me, Ian? 👀❤️</h3>
@@ -272,6 +287,7 @@ function App() {
         ) : (
           <EcraGame onFinish={() => setShowGame(false)} />
         )}
+
         {submitted && (
           <section className="success-message" role="status">
             <h2>Response received! 💌</h2>
