@@ -1,7 +1,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-const API = "http://ian-ecra.vercel.app/api";
+const API = "https://ian-ecra-backend.vercel.app/api";
 
 function AdminDashboard() {
   const [loggedIn, setLoggedIn] = useState(false);
