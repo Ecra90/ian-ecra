@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const API = "http://localhost:5000/api";
 
@@ -11,70 +11,82 @@ function AdminDashboard() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState("");
 
-  async function loadResponses() {
+  const loadResponses = useCallback(async () => {
     setError("");
     setRefreshing(true);
 
     try {
       const response = await fetch(`${API}/responses`, {
+        method: "GET",
         credentials: "include",
+        cache: "no-store",
       });
 
       if (response.status === 401) {
         setLoggedIn(false);
         setResponses([]);
-        setError("Your session has expired. Please log in again.");
-        return;
+        throw new Error("Your session expired. Please log in again.");
       }
 
       if (!response.ok) {
-        throw new Error("Could not load responses. Please try again.");
+        throw new Error(`Server error: HTTP ${response.status}`);
       }
 
       const data = await response.json();
 
-      // Supports either a direct array or { responses: [...] }.
-      const items = Array.isArray(data) ? data : data.responses;
-
-      if (!Array.isArray(items)) {
-        throw new Error("Unexpected response format from Flask.");
+      if (!Array.isArray(data)) {
+        throw new Error("Flask returned an unexpected response format.");
       }
 
-      setResponses(items);
+      setResponses(data);
+      setLastUpdated(new Date().toLocaleTimeString());
     } catch (err) {
-      setError(err.message || "Cannot connect to the backend.");
+      console.error("Refresh failed:", err);
+      setError(err.message || "Cannot connect to Flask.");
     } finally {
       setRefreshing(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function checkSession() {
       try {
         const response = await fetch(`${API}/session`, {
           credentials: "include",
+          cache: "no-store",
         });
 
         if (!response.ok) {
-          throw new Error("Could not verify your login session.");
+          throw new Error(`Session check failed: HTTP ${response.status}`);
         }
 
         const data = await response.json();
+
+        if (cancelled) return;
 
         if (data.logged_in) {
           setLoggedIn(true);
           await loadResponses();
         }
       } catch (err) {
-        setError(err.message || "Cannot connect to Flask. Is it running?");
+        if (!cancelled) {
+          setError(err.message || "Cannot connect to Flask.");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     checkSession();
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadResponses]);
 
   async function handleLogin(event) {
     event.preventDefault();
@@ -84,16 +96,14 @@ function AdminDashboard() {
       const response = await fetch(`${API}/login`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Login failed.");
+        throw new Error(data.error || `Login failed: HTTP ${response.status}`);
       }
 
       setPassword("");
@@ -114,11 +124,12 @@ function AdminDashboard() {
       });
 
       if (!response.ok) {
-        throw new Error("Could not log out. Please try again.");
+        throw new Error(`Logout failed: HTTP ${response.status}`);
       }
 
       setLoggedIn(false);
       setResponses([]);
+      setLastUpdated("");
     } catch (err) {
       setError(err.message || "Logout failed.");
     }
@@ -182,11 +193,21 @@ function AdminDashboard() {
           Log out
         </button>
 
-        {error && <p className="error">{error}</p>}
+        {lastUpdated && (
+          <p>Last refreshed: {lastUpdated}</p>
+        )}
 
-        {responses.length === 0 ? (
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
+
+        {!error && responses.length === 0 && (
           <p>No responses have been submitted yet.</p>
-        ) : (
+        )}
+
+        {responses.length > 0 && (
           <div className="response-list">
             {responses.map((item) => (
               <article className="response-item" key={item.id}>
@@ -211,4 +232,5 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
+
 

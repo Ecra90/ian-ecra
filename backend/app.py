@@ -1,6 +1,8 @@
 
+
 import os
 import sqlite3
+import hmac
 from pathlib import Path
 from datetime import datetime, timezone
 from functools import wraps
@@ -10,10 +12,13 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
+# Configuration
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
 if not app.secret_key:
-    raise RuntimeError("Set FLASK_SECRET_KEY before starting Flask.")
+    raise RuntimeError(
+        "FLASK_SECRET_KEY is missing. Set it before starting Flask."
+    )
 
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
@@ -23,19 +28,20 @@ app.config.update(
 
 CORS(
     app,
-    resources={r"/api/*": {
-        "origins": [
-            "http://localhost:3001",
-            "http://127.0.0.1:3001",
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-        ]
-    }},
+    resources={
+        r"/api/*": {
+            "origins": [
+                "http://localhost:3001",
+                "http://127.0.0.1:3001",
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+            ]
+        }
+    },
     supports_credentials=True,
 )
 
-
-DATABASE = Path(__file__).with_name("responses.db")
+DATABASE = Path(__file__).resolve().with_name("responses.db")
 
 
 def get_db_connection():
@@ -61,10 +67,16 @@ def admin_required(function):
     def wrapper(*args, **kwargs):
         if not session.get("admin_logged_in"):
             return jsonify({"error": "Please log in first."}), 401
-
         return function(*args, **kwargs)
-
     return wrapper
+
+
+@app.route("/api/health", methods=["GET"])
+def health():
+    return jsonify({
+        "status": "success",
+        "message": "Ian's website API is running!"
+    })
 
 
 @app.route("/api/login", methods=["POST"])
@@ -80,20 +92,17 @@ def login():
     if not username or not password:
         return jsonify({"error": "Login is not configured."}), 500
 
-    from hmac import compare_digest
-
     submitted_username = data.get("username", "")
     submitted_password = data.get("password", "")
 
-    if not isinstance(submitted_username, str):
-        return jsonify({"error": "Invalid credentials."}), 401
-
-    if not isinstance(submitted_password, str):
+    if not isinstance(submitted_username, str) or not isinstance(
+        submitted_password, str
+    ):
         return jsonify({"error": "Invalid credentials."}), 401
 
     if not (
-        compare_digest(submitted_username, username)
-        and compare_digest(submitted_password, password)
+        hmac.compare_digest(submitted_username, username)
+        and hmac.compare_digest(submitted_password, password)
     ):
         return jsonify({"error": "Incorrect username or password."}), 401
 
@@ -116,22 +125,12 @@ def check_session():
     })
 
 
-@app.route("/api/health", methods=["GET"])
-def health():
-    return jsonify({
-        "status": "success",
-        "message": "Ian's website API is running!"
-    })
-
-
 @app.route("/api/responses", methods=["POST"])
 def save_response():
     data = request.get_json(silent=True)
 
     if not isinstance(data, dict):
-        return jsonify({
-            "error": "A JSON object is required."
-        }), 400
+        return jsonify({"error": "A JSON object is required."}), 400
 
     answer = data.get("answer")
 
@@ -148,15 +147,14 @@ def save_response():
             INSERT INTO responses (answer, created_at)
             VALUES (?, ?)
             """,
-            (answer, created_at)
+            (answer, created_at),
         )
-
         response_id = cursor.lastrowid
 
     return jsonify({
         "status": "success",
         "message": "Response saved successfully!",
-        "response_id": response_id
+        "response_id": response_id,
     }), 201
 
 
@@ -174,7 +172,7 @@ def get_responses():
         {
             "id": row["id"],
             "answer": row["answer"],
-            "created_at": row["created_at"]
+            "created_at": row["created_at"],
         }
         for row in rows
     ])
@@ -182,4 +180,7 @@ def get_responses():
 
 if __name__ == "__main__":
     initialize_database()
-    app.run(debug=True, port=5000)
+    print(f"Database: {DATABASE}")
+    print("Starting Flask API on http://127.0.0.1:5000")
+
+    app.run(host="127.0.0.1", port=5000, debug=False)
