@@ -6,11 +6,9 @@ import "./App.css";
 import AdminDashboard from "./AdminDashboard";
 import EcraGame from "./EcraGame";
 
-// Set REACT_APP_API_URL in .env if Flask is deployed separately.
-// Otherwise, this defaults to the same domain as the frontend.
-const API = (
-  process.env.REACT_APP_API_URL || "/api"
-).replace(/\/+$/, "");
+
+const API = "https://ian-ecra-backend.vercel.app/api";
+
 
 function App() {
   const [showMessage, setShowMessage] = useState(false);
